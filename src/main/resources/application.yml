@@ -1,0 +1,12 @@
+display:
+  mach: 3
+  unit:
+    name: "mph"
+    factor: 2.23694
+quarkus:
+  log:
+    console:
+      json:
+        pretty-print: true
+        date-format: "YYYY-MM-dd HH:mm:ss"
+        exception-output-type: "detailed-and-formatted"
