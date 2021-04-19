@@ -12,5 +12,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @InterceptorBinding
 @Target({METHOD, TYPE})
 @Retention(RUNTIME)
-public @interface MessageHandler {
+public @interface Stateful {
 }

@@ -4,7 +4,7 @@ import javax.enterprise.event.Event;
 import java.time.Instant;
 import java.util.UUID;
 
-public class ApplicationCommand<T> implements GenericMessage {
+public class ApplicationCommand<T extends IdentifiedPayload> implements GenericMessage {
 
     UUID id;
     Instant timestamp;
@@ -41,7 +41,7 @@ public class ApplicationCommand<T> implements GenericMessage {
         return this.getClass().getName() + "{" +
                 "id=" + id +
                 ", timestamp=" + timestamp +
-                ", payload=" + payload +
+                ", payload=" + payload != null ? payload.toString() : "null" +
                 '}';
     }
 }

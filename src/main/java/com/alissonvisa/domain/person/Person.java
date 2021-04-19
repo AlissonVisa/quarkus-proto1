@@ -2,57 +2,38 @@ package com.alissonvisa.domain.person;
 
 import com.alissonvisa.messaging.CommandType;
 import com.alissonvisa.messaging.CreatePersonCommand;
+import com.alissonvisa.messaging.UpdatePersonNameCommand;
+import io.quarkus.mongodb.panache.MongoEntity;
+import org.bson.types.ObjectId;
 import org.jboss.logging.Logger;
 
-import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Objects;
-import java.util.UUID;
 
-@Named
-@Dependent
-public class Person implements CloneableEntity<Person> {
+@MongoEntity(collection = "PERSON")
+public class Person extends ApplicationEntity<Person> {
 
     private static final Logger LOG = Logger.getLogger(Person.class);
 
-    @Inject
-    private PersonMapper personMapper;
+    private ObjectId id;
+    private String name;
 
-    @MessageHandler
-    public void handle(@Observes @CommandType CreatePersonCommand command) {
-        LOG.info(this.toString());
-        this.name = command.getPayload().getName();
-        this.id = command.getPayload().getId();
-        LOG.info(command.toString());
-        createId();
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            LOG.error(e.getMessage(),e);
-        }
-        LOG.info(this.toString());
-    }
-
-    UUID id;
-    String name;
+    public Person() {}
 
     public Person(String name) {
         this.name = name;
     }
 
-    private Person() {}
-
-    private void createId() {
-        this.id = UUID.randomUUID();
+    public Person(ObjectId id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public UUID getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 
@@ -88,7 +69,29 @@ public class Person implements CloneableEntity<Person> {
 
     @Override
     public void clone(Person sourceEntity) {
-        this.id = sourceEntity.getId();
-        this.name = sourceEntity.getName();
+        if(sourceEntity == null) return;
+        this.setId(sourceEntity.getId());
+        this.setName(sourceEntity.getName());
+    }
+
+    public void handle(@Observes @CommandType CreatePersonCommand command) {
+        this.setName(command.getPayload().getName());
+        this.persist();
+    }
+
+    @Stateful
+    public void handle(@Observes @CommandType UpdatePersonNameCommand command) {
+        this.setName(command.getPayload().getName());
+        this.update();
+    }
+
+    @Override
+    public Person newInstance() {
+        return new Person();
+    }
+
+    @Override
+    public Person find(ObjectId id) {
+        return Person.findById(id);
     }
 }

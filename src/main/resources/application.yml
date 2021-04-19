@@ -10,3 +10,6 @@ quarkus:
         pretty-print: true
         date-format: "YYYY-MM-dd HH:mm:ss"
         exception-output-type: "detailed-and-formatted"
+  mongodb:
+    connection-string: mongodb://localhost:27017/maindb?uuidRepresentation=STANDARD
+    database: maindb

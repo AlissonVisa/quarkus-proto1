@@ -1,15 +1,10 @@
 package com.alissonvisa;
 
-import com.alissonvisa.domain.person.Person;
-import com.alissonvisa.messaging.CommandGateway;
-import com.alissonvisa.messaging.CreatePersonCommand;
+import com.alissonvisa.messaging.*;
+import org.bson.types.ObjectId;
 
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 @Path("/hello-resteasy")
@@ -17,9 +12,6 @@ public class GreetingResource {
 
     @Inject
     private CommandGateway commandGateway;
-
-    @Inject
-    private Instance<Person> persons;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -31,9 +23,15 @@ public class GreetingResource {
     @Path("/create-person")
     @Produces(MediaType.TEXT_PLAIN)
     public void createPerson() {
-        commandGateway.send(new CreatePersonCommand(new Person("Pedro")));
-        for (Person person: persons) {
-            System.out.println(person.toString());
-        }
+        commandGateway.send(new CreatePersonCommand(new PersonPayload("Pedro")));
+
+    }
+
+    @PATCH
+    @Path("/person/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public void updatePerson(@PathParam("id") String id, @QueryParam("name") String name) {
+        commandGateway.send(new UpdatePersonNameCommand(new PersonNamePayload(new ObjectId(id), name)));
+
     }
 }
