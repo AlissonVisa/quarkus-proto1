@@ -1,12 +1,11 @@
 package com.alissonvisa.base.persistence;
 
+import com.mongodb.client.MongoClient;
 import org.bson.types.ObjectId;
 
-public interface Entity<T> extends CloneableEntity<T> {
+public interface Entity<T> {
 
-    void restoreFromDatabase(ObjectId id);
-
-    T find(ObjectId id);
+    void restoreFromDatabase(ObjectId id, MongoClient mongoClient, String database);
 
     void persist();
 
