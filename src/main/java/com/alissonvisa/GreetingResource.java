@@ -1,6 +1,8 @@
 package com.alissonvisa;
 
-import com.alissonvisa.messaging.*;
+import com.alissonvisa.base.messaging.CommandGateway;
+import com.alissonvisa.domain.person.command.CreatePersonCommand;
+import com.alissonvisa.domain.person.command.UpdatePersonNameCommand;
 import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
@@ -22,16 +24,15 @@ public class GreetingResource {
     @POST
     @Path("/create-person")
     @Produces(MediaType.TEXT_PLAIN)
-    public void createPerson() {
-        commandGateway.send(new CreatePersonCommand(new PersonPayload("Pedro")));
-
+    public void createPerson(@QueryParam("name") String name) {
+        commandGateway.send(new CreatePersonCommand(name));
     }
 
     @PATCH
     @Path("/person/{id}")
     @Produces(MediaType.TEXT_PLAIN)
     public void updatePerson(@PathParam("id") String id, @QueryParam("name") String name) {
-        commandGateway.send(new UpdatePersonNameCommand(new PersonNamePayload(new ObjectId(id), name)));
+        commandGateway.send(new UpdatePersonNameCommand(new ObjectId(id), name));
 
     }
 }

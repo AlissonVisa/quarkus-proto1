@@ -1,4 +1,4 @@
-package com.alissonvisa.domain.person;
+package com.alissonvisa.base.persistence;
 
 public interface Instantiable<T> {
 

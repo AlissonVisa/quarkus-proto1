@@ -1,4 +1,4 @@
-package com.alissonvisa.messaging;
+package com.alissonvisa.base.messaging;
 
 import org.bson.types.ObjectId;
 

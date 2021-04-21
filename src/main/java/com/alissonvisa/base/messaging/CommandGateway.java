@@ -1,4 +1,4 @@
-package com.alissonvisa.messaging;
+package com.alissonvisa.base.messaging;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
