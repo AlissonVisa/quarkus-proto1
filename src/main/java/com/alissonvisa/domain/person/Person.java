@@ -10,7 +10,6 @@ import com.alissonvisa.domain.person.command.UpdatePersonNameCommand;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.quarkus.mongodb.panache.MongoEntity;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 import org.bson.types.ObjectId;
@@ -18,11 +17,11 @@ import org.bson.types.ObjectId;
 import javax.enterprise.event.Observes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @JBossLog
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @MongoEntity
 public class Person extends ApplicationEntity {
@@ -43,6 +42,8 @@ public class Person extends ApplicationEntity {
     public void handle(@Observes @CommandType UpdatePersonNameCommand command) {
         if(command.isLazy()) {
             sleep(3500L);
+        } else {
+            sleep( 1000l);
         }
         this.name = command.getName();
         this.lastName = command.getLastName();
@@ -72,4 +73,21 @@ public class Person extends ApplicationEntity {
         this.delete();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!super.equals(o)) return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Objects.equals(id, person.id) &&
+                Objects.equals(name, person.name) &&
+                Objects.equals(lastName, person.lastName) &&
+                Objects.equals(age, person.age) &&
+                Objects.equals(addresses, person.addresses);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, lastName, age, addresses) + super.hashCode();
+    }
 }

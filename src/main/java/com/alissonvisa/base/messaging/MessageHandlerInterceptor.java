@@ -49,12 +49,12 @@ public class MessageHandlerInterceptor {
         boolean entityLock = false;
         TimeWatch timeWatch = TimeWatch.start();
         while (!entityLock) {
-            log.info("Trying to acquire lock for entity " + entity.getId().toHexString());
+//            log.info("Trying to acquire lock for entity " + entity.getId().toHexString());
             entityLock = lockManager.entityLock(entity);
             if(entityLock) {
                 entity.restoreFromDatabase(entity.getId(), mongoClient, database);
             } else {
-                Thread.sleep(60);
+                Thread.sleep(240L);
                 if(timeWatch.time(TimeUnit.MILLISECONDS) > entityRestoreTimeout) {
                     throw new EntityRestoreTimeoutException("Entity restore from database timeout. EntityId = " + entity.getId().toHexString() + " elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
                 }

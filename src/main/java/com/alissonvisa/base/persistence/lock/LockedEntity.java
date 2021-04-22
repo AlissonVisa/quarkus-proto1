@@ -15,6 +15,10 @@ public class LockedEntity {
     private Long timeoutMillis;
     private UUID lockId;
 
+    public UUID getLockId() {
+        return lockId;
+    }
+
     public LockedEntity(String entityId) {
         this.entityId = entityId;
         this.timeWatch = TimeWatch.start();
@@ -29,10 +33,6 @@ public class LockedEntity {
 
     @Override
     public boolean equals(Object o) {
-//        if (timedOut()) {
-//            log.warn("Entity lock timeout id " + this.entityId);
-//            return false;
-//        }
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LockedEntity that = (LockedEntity) o;
@@ -41,10 +41,6 @@ public class LockedEntity {
 
     @Override
     public int hashCode() {
-//        if(timedOut()) {
-//            log.warn("Entity lock timeout id " + this.entityId);
-//            return -1;
-//        }
         return Objects.hash(entityId);
     }
 

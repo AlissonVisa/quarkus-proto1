@@ -19,6 +19,7 @@ import org.modelmapper.ModelMapper;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -156,10 +157,23 @@ public abstract class ApplicationEntity extends PanacheMongoEntity implements En
         } else if (this.timeWatch.time(TimeUnit.MILLISECONDS) < this.entityProcessTimeout) {
             this.persistOrUpdate();
             this.lockManager.removeLock(this);
+            log.info("entity hash " + this.hashCode());
             log.info("entity processed id " + this.getId().toHexString() + " elapsed time " + this.timeWatch.time(TimeUnit.SECONDS) + " seconds.");
         } else {
             throw new EntityProcessTimeoutException("Entity process timeout. EntityId = " + this.getId() + " elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApplicationEntity that = (ApplicationEntity) o;
+        return Objects.equals(active, that.active);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(active);
+    }
 }
