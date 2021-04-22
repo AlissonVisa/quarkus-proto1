@@ -1,6 +1,9 @@
 package com.alissonvisa.base.persistence;
 
+import com.alissonvisa.base.exception.EntityProcessTimeoutException;
 import com.alissonvisa.base.json.ObjectIdDeserializer;
+import com.alissonvisa.base.persistence.lock.EntityLockManager;
+import com.alissonvisa.util.TimeWatch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -8,21 +11,34 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.runtime.JavaMongoOperations;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.jbosslog.JBossLog;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.modelmapper.ModelMapper;
 
 import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.client.model.Filters.eq;
 
 @JBossLog
-@Getter
-@Setter
 public abstract class ApplicationEntity extends PanacheMongoEntity implements Entity<Object> {
+
+    @Inject
+    private EntityLockManager lockManager;
+
+    @ConfigProperty(name = "application.entity-locker.entity-process-timeout")
+    private Long entityProcessTimeout = 4000L;
+
+    @ConfigProperty(name = "application.entity-locker.enabled", defaultValue = "true")
+    private Boolean entityLockerEnabled;
+
+    private TimeWatch timeWatch;
+
+    private UUID lockId;
 
     protected Boolean active = Boolean.TRUE;
 
@@ -32,6 +48,26 @@ public abstract class ApplicationEntity extends PanacheMongoEntity implements En
 
     public void setId(ObjectId id) {
         this.id = id;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    @Override
+    public UUID lockId() {
+        return this.lockId;
+
+    }
+
+    @Override
+    public void lockId(UUID lockId) {
+        this.lockId = lockId;
+        this.timeWatch = TimeWatch.start();
     }
 
     public void persist(){
@@ -103,19 +139,27 @@ public abstract class ApplicationEntity extends PanacheMongoEntity implements En
         return mapper;
     }
 
-    private String completeClassName() {
+    public String completeClassName() {
         return this.getClass().getPackageName()
                 + "."
                 + this.getClass().getSimpleName().substring(0, this.getClass().getSimpleName().indexOf("_"));
     }
 
-    private String simpleClassName() {
+    public String simpleClassName() {
         return this.getClass().getSimpleName().substring(0, this.getClass().getSimpleName().indexOf("_"));
     }
 
     @PreDestroy
     public void preDestroy() {
-        this.persistOrUpdate();
+        if(entityLockerEnabled == Boolean.FALSE) {
+            this.persistOrUpdate();
+        } else if (this.timeWatch.time(TimeUnit.MILLISECONDS) < this.entityProcessTimeout) {
+            this.persistOrUpdate();
+            this.lockManager.removeLock(this);
+            log.info("entity processed id " + this.getId().toHexString() + " elapsed time " + this.timeWatch.time(TimeUnit.SECONDS) + " seconds.");
+        } else {
+            throw new EntityProcessTimeoutException("Entity process timeout. EntityId = " + this.getId() + " elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
+        }
     }
 
 }

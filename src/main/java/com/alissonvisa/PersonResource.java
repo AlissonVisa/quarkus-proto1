@@ -55,13 +55,15 @@ public class PersonResource {
     @PATCH
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public void updatePerson(@PathParam("id") String id,
-                             @QueryParam("name") String name,
-                             @QueryParam("lastName") String lastName) {
+    public void updatePersonName(@PathParam("id") String id,
+                                 @QueryParam("name") String name,
+                                 @QueryParam("lastName") String lastName,
+                                 @QueryParam("lazy") Boolean lazy) {
         commandGateway.send(UpdatePersonNameCommand.builder()
                 .id(new ObjectId(id))
                 .name(name)
                 .lastName(lastName)
+                .lazy(lazy)
                 .build());
 
     }
@@ -69,7 +71,7 @@ public class PersonResource {
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public void updatePerson(@PathParam("id") String id) {
+    public void updatePersonName(@PathParam("id") String id) {
         commandGateway.send(DeletePersonCommand.builder()
                 .id(new ObjectId(id))
                 .build());

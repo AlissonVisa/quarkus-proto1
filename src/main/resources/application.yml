@@ -1,3 +1,10 @@
+application:
+  entity-locker:
+    enabled: true
+    entity-restore-timeout: 5000
+    entity-lock-timeout: 4500
+    entity-process-timeout: 4000
+
 display:
   mach: 3
   unit:
