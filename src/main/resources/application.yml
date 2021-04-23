@@ -1,9 +1,9 @@
 application:
   entity-locker:
     enabled: true
-    entity-restore-timeout: 5000
-    entity-lock-timeout: 4500
-    entity-process-timeout: 4000
+    entity-restore-timeout: 10000
+    entity-lock-timeout: 8000
+    entity-process-timeout: 6000
 
 display:
   mach: 3
@@ -11,6 +11,8 @@ display:
     name: "mph"
     factor: 2.23694
 quarkus:
+  http:
+    port: 0
   log:
     console:
       json:
@@ -20,3 +22,5 @@ quarkus:
   mongodb:
     connection-string: mongodb://localhost:27017/maindb?uuidRepresentation=STANDARD
     database: maindb
+  redis:
+    hosts: redis://localhost:6379

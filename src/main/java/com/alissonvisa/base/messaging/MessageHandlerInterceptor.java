@@ -56,9 +56,18 @@ public class MessageHandlerInterceptor {
             } else {
                 Thread.sleep(240L);
                 if(timeWatch.time(TimeUnit.MILLISECONDS) > entityRestoreTimeout) {
-                    throw new EntityRestoreTimeoutException("Entity restore from database timeout. EntityId = " + entity.getId().toHexString() + " elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
+                    lockManager.getExecutionQueue()
+                            .get(getEntityKey(entity.completeClassName(), entity.getId().toHexString()))
+                            .remove(Thread.currentThread().getName());
+                    throw new EntityRestoreTimeoutException("Entity restore from database timeout. " +
+                            "EntityId = " + entity.getId().toHexString() + " " +
+                            "elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
                 }
             }
         }
+    }
+
+    private String getEntityKey(String className, String entityIdHexString) {
+        return className + ":" + entityIdHexString;
     }
 }
