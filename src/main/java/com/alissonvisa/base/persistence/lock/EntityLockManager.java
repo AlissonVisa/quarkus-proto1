@@ -1,6 +1,7 @@
 package com.alissonvisa.base.persistence.lock;
 
 import com.alissonvisa.base.persistence.ApplicationEntity;
+import com.alissonvisa.util.TimeWatch;
 import lombok.extern.jbosslog.JBossLog;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -9,25 +10,30 @@ import javax.inject.Inject;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 @JBossLog
 @ApplicationScoped
 public class EntityLockManager {
 
     @ConfigProperty(name = "application.entity-locker.entity-lock-timeout")
-    private Long entityLockTimeout = 4500L;
+    Long entityLockTimeout = 4500L;
 
     @Inject
-    private RedisLockerRepository lockerRepository;
+    RedisLockerRepository lockerRepository;
+
+    private static final long QUEUE_IDLE_TIMEOUT = 1000L;
 
     private final ConcurrentHashMap<String, LockedEntitiesWrapper> lockedEntitiesTable;
     private final ConcurrentHashMap<String, LockMonitor> lockMonitors;
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> executionQueue;
+    private final ConcurrentHashMap<String, TimeWatch> executionQueueTimer;
 
     public EntityLockManager() {
         this.lockMonitors = new ConcurrentHashMap<>();
         this.lockedEntitiesTable = new ConcurrentHashMap<>();
         this.executionQueue = new ConcurrentHashMap<>();
+        this.executionQueueTimer = new ConcurrentHashMap<>();
     }
 
     public <T extends ApplicationEntity> boolean  entityLock(T entity) {
@@ -39,13 +45,19 @@ public class EntityLockManager {
         if(lockMonitor == null) {
             lockMonitors.put(entityKey, new LockMonitor(className, entityIdHexString));
             executionQueue.put(entityKey, new ConcurrentLinkedQueue<>());
+            startExecutionQueueTimer(entityKey);
         }
         synchronized (lockMonitors.get(entityKey)) {
 //            log.info("monitoring sync block " + entityKey);
             String threadName = Thread.currentThread().getName();
             final ConcurrentLinkedQueue threadQueue = executionQueue.get(entityKey);
             if (lateOnQueue(threadName, threadQueue)) {
-                log.info("late on queue " + threadName + " entity " + entityIdHexString);
+                log.info("late on queue " + threadName + " entity " + entityIdHexString + " queue " + this.executionQueue.get(entityKey));
+                if(executionQueueTime(entityKey, TimeUnit.MILLISECONDS) > QUEUE_IDLE_TIMEOUT){
+                    log.warn("queue was idle - clearing execution queue " + this.executionQueue.get(entityKey));
+                    this.executionQueue.get(entityKey).clear();
+                    startExecutionQueueTimer(entityKey);
+                }
                 return false;
             }
             UUID lockId = UUID.randomUUID();
@@ -67,7 +79,7 @@ public class EntityLockManager {
                 lockedEntitiesTable.put(className, new LockedEntitiesWrapper(entity, entityLockTimeout));
                 log.info("entity locked - locker started " + entityIdHexString + " " + entity.lockId().toString());
             }
-            threadQueue.remove();
+            queueRemoveHead(entityKey);
 //            log.info("exiting sync block " + entityKey);
         }
         return true;
@@ -82,7 +94,7 @@ public class EntityLockManager {
         if (checkFailOnClusterLock(entityIdHexString, entityKey, lockId)) return false;
         entity.lockId(lockId);
         lockedEntitiesTable.get(className).getLockedEntities().put(entityIdHexString, new LockedEntity(entityIdHexString, entityLockTimeout, entity.lockId()));
-        threadQueue.remove();
+        queueRemoveHead(entityKey);
         log.info("entity locked by another thread due to lock timeout " + entityIdHexString + " " + entity.lockId().toString());
 //                        log.info("exiting sync block " + entityKey);
         return true;
@@ -148,5 +160,40 @@ public class EntityLockManager {
 
     public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getExecutionQueue() {
         return executionQueue;
+    }
+
+    public boolean queueRemove(String entityKey, String item) {
+        boolean remove = this.executionQueue.get(entityKey).remove(item);
+        if(this.executionQueue.get(entityKey).isEmpty())
+            stopExecutionQueueTimer(entityKey);
+        return remove;
+    }
+
+    public Object queueRemoveHead(String entityKey) {
+        Object remove = this.executionQueue.get(entityKey).poll();
+        if(this.executionQueue.get(entityKey).isEmpty())
+            stopExecutionQueueTimer(entityKey);
+        else
+            startExecutionQueueTimer(entityKey);
+        return remove;
+    }
+
+    private void startExecutionQueueTimer(String entityKey) {
+        if (this.executionQueueTimer.get(entityKey) == null) {
+            this.executionQueueTimer.put(entityKey, TimeWatch.start());
+        } else {
+            this.executionQueueTimer.get(entityKey).reset();
+        }
+    }
+
+    private long executionQueueTime(String entityKey, TimeUnit timeUnit) {
+        if (this.executionQueueTimer.get(entityKey) == null) {
+            this.executionQueueTimer.put(entityKey, TimeWatch.start());
+        }
+        return this.executionQueueTimer.get(entityKey).time(timeUnit);
+    }
+
+    private void stopExecutionQueueTimer(String entityKey) {
+        this.executionQueueTimer.remove(entityKey);
     }
 }

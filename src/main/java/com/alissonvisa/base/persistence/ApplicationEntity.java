@@ -29,13 +29,13 @@ import static com.mongodb.client.model.Filters.eq;
 public abstract class ApplicationEntity extends PanacheMongoEntity implements Entity<Object> {
 
     @Inject
-    private EntityLockManager lockManager;
+    EntityLockManager lockManager;
 
     @ConfigProperty(name = "application.entity-locker.entity-process-timeout")
-    private Long entityProcessTimeout = 4000L;
+    Long entityProcessTimeout = 4000L;
 
     @ConfigProperty(name = "application.entity-locker.enabled", defaultValue = "true")
-    private Boolean entityLockerEnabled;
+    Boolean entityLockerEnabled;
 
     private TimeWatch timeWatch;
 

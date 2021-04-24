@@ -18,7 +18,7 @@ import java.util.List;
 public class PersonResource {
 
     @Inject
-    private CommandGateway commandGateway;
+    CommandGateway commandGateway;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

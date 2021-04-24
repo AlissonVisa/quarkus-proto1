@@ -1,4 +1,5 @@
 docker run -d \
+    --network host \
     --memory-swappiness=0 \
     --ulimit memlock=-1:-1 \
     -it -p 6379:6379 \

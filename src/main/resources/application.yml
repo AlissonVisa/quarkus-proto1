@@ -12,7 +12,7 @@ display:
     factor: 2.23694
 quarkus:
   http:
-    port: 0
+    port: 8080
   log:
     console:
       json:

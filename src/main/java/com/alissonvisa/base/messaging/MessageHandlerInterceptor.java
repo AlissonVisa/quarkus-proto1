@@ -21,19 +21,19 @@ import java.util.concurrent.TimeUnit;
 public class MessageHandlerInterceptor {
 
     @Inject
-    private MongoClient mongoClient;
+    MongoClient mongoClient;
 
     @Inject
-    private EntityLockManager lockManager;
+    EntityLockManager lockManager;
 
     @ConfigProperty(name = "quarkus.mongodb.database")
-    private String database;
+    String database;
 
     @ConfigProperty(name = "application.entity-locker.entity-restore-timeout")
-    private Long entityRestoreTimeout = 5000L;
+    Long entityRestoreTimeout = 5000L;
 
     @ConfigProperty(name = "application.entity-locker.enabled", defaultValue = "true")
-    private Boolean entityLockerEnabled;
+    Boolean entityLockerEnabled;
 
     @AroundInvoke
     public Object findEntity(InvocationContext invocationContext) throws Exception {

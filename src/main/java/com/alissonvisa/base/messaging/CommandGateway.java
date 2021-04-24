@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 public class CommandGateway implements GenericMessageGateway<ApplicationCommand> {
 
     @Inject
-    private @CommandType Event<GenericMessage> event;
+    @CommandType Event<GenericMessage> event;
 
     @Override
     public CompletableFuture<Object> send(ApplicationCommand message) {

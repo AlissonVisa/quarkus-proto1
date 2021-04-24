@@ -1,0 +1,1 @@
+docker run -i --name quarkus-person --network host -p 8080:8080 alisson-vieira/code-with-quarkus:1.0.0-SNAPSHOT

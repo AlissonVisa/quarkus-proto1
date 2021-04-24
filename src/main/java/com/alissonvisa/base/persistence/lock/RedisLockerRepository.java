@@ -20,10 +20,10 @@ public class RedisLockerRepository {
     private static final String SECONDS = "EX"; // arg milliseconds
 
     @ConfigProperty(name = "application.entity-locker.entity-lock-timeout", defaultValue = "4500")
-    private Long entityLockTimeout;
+    Long entityLockTimeout;
 
     @Inject
-    private RedisClient redisClient;
+    RedisClient redisClient;
 
     Boolean setLockIfNotExists(String key, UUID lockId) {
         Boolean responseSet = redisClient.setnx(key, lockId.toString()).toBoolean();
