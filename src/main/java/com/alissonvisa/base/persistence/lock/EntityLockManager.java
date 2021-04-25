@@ -145,6 +145,7 @@ public class EntityLockManager {
     }
 
     public <T extends ApplicationEntity> void removeLock(T entity) {
+        if(entity.getId() == null) return;
         String className = entity.completeClassName();
         String entityIdHexString = entity.getId().toHexString();
         String entityKey = getEntityKey(className, entityIdHexString);

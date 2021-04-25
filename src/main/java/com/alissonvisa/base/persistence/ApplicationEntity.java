@@ -154,11 +154,13 @@ public abstract class ApplicationEntity extends PanacheMongoEntity implements En
     public void preDestroy() {
         if(entityLockerEnabled == Boolean.FALSE) {
             this.persistOrUpdate();
-        } else if (this.timeWatch.time(TimeUnit.MILLISECONDS) < this.entityProcessTimeout) {
+        } else if (this.timeWatch == null || this.timeWatch.time(TimeUnit.MILLISECONDS) < this.entityProcessTimeout) {
             this.persistOrUpdate();
             this.lockManager.removeLock(this);
             log.info("entity hash " + this.hashCode());
-            log.info("entity processed id " + this.getId().toHexString() + " elapsed time " + this.timeWatch.time(TimeUnit.SECONDS) + " seconds.");
+            if(this.getId() != null && this.timeWatch != null) {
+                log.info("entity processed id " + this.getId().toHexString() + " elapsed time " + this.timeWatch.time(TimeUnit.SECONDS) + " seconds.");
+            }
         } else {
             throw new EntityProcessTimeoutException("Entity process timeout. EntityId = " + this.getId() + " elapsed time = " + timeWatch.time(TimeUnit.SECONDS) + " seconds.");
         }
