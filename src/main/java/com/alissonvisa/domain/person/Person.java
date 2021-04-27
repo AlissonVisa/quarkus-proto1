@@ -40,11 +40,6 @@ public class Person extends ApplicationEntity {
 
     @Stateful
     public void handle(@Observes @CommandType UpdatePersonNameCommand command) {
-        if(command.isLazy()) {
-            sleep(5000L);
-        } else {
-            sleep( 1000L);
-        }
         this.name = command.getName();
         this.lastName = command.getLastName();
     }

@@ -6,7 +6,9 @@
   <artifactId>code-with-quarkus</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
+    <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <jvm.args>-DXmx=25m -DXms=25m</jvm.args>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -58,6 +60,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -116,6 +122,11 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-container-image-jib</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.11</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -133,6 +144,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <jvmArgs>-DXmx=25m -DXms=25m</jvmArgs>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -150,6 +164,29 @@
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>add-resource</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/knative</directory>
+                  <targetPath>${project.build.directory}/knative</targetPath>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -195,9 +232,13 @@
         <quarkus.container-image.build>true</quarkus.container-image.build>
         <quarkus.native.container-build>true</quarkus.native.container-build>
         <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.container-image.group>alissonvisa</quarkus.container-image.group>
+        <quarkus.container-image.registry>docker.io</quarkus.container-image.registry>
+        <quarkus.container-image.push>true</quarkus.container-image.push>
         <quarkus.native.builder-image>quay.io/quarkus/ubi-quarkus-native-image:21.0-java11</quarkus.native.builder-image>
         <quarkus.native.enable-all-security-services>true</quarkus.native.enable-all-security-services>
         <quarkus.native.report-errors-at-runtime>true</quarkus.native.report-errors-at-runtime>
+        <quarkus.container-image.builder>jib</quarkus.container-image.builder>
       </properties>
     </profile>
   </profiles>

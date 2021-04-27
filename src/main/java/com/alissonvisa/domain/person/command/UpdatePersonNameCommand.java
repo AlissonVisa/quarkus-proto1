@@ -12,6 +12,6 @@ public class UpdatePersonNameCommand extends ApplicationCommand {
     private final ObjectId id;
     private final String name;
     private final String lastName;
-    private final boolean lazy;
+    private final Boolean lazy;
 
 }

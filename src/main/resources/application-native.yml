@@ -1,0 +1,9 @@
+quarkus:
+  mongodb:
+    connection-string: mongodb://userO67:04BjOfK3ID4g6C5E@maindb/maindb
+    database: maindb
+    user: userO67
+    password: 04BjOfK3ID4g6C5E
+  redis:
+    hosts: redis://redis:6379/
+    password: 6ckHQ5mSns6gsq7B
